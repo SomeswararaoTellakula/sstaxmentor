@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply font-body text-brand-text bg-brand-bg antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-brand-navy;
+  }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="number"], input:not([type]),
+  textarea, select {
+    @apply w-full rounded-2xl border border-[#9BAABF] bg-white px-4 py-3 text-base md:text-sm text-brand-navy
+           focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none
+           transition placeholder:text-slate-400;
+  }
+  label {
+    @apply block text-sm font-semibold text-brand-navy mb-1.5;
+  }
+  .label-required::after {
+    content: ' *';
+    @apply text-red-500;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-semibold px-5 py-2.5 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+  }
+  .btn-primary {
+    @apply btn bg-brand-blue text-white hover:bg-brand-blue/90 shadow-sm;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-brand-navy border border-brand-line hover:bg-brand-bgSoft;
+  }
+  .btn-ghost {
+    @apply btn text-brand-blue hover:bg-brand-bgSoft;
+  }
+  .btn-danger {
+    @apply btn bg-red-50 text-red-600 border border-red-200 hover:bg-red-100;
+  }
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand-line bg-white px-4 py-2 text-xs font-semibold text-brand-navy shadow-sm;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-brand-line shadow-sm;
+  }
+  .section-wrap {
+    @apply mx-auto w-full max-w-content px-4 sm:px-6 lg:px-8;
+  }
+  .field-error {
+    @apply text-xs text-red-600 mt-1;
+  }
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+  .kicker {
+    @apply inline-flex items-center gap-3 text-xs font-bold uppercase tracking-[0.22em] text-brand-amber;
+  }
+  .kicker::before, .kicker::after {
+    content: '';
+    @apply inline-block h-px w-10 bg-brand-amber/50;
+  }
+  .progress-dot {
+    @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold;
+  }
+  .doc-upload-box {
+    @apply flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-brand-line bg-brand-bgSoft p-6 text-center cursor-pointer hover:border-brand-blue hover:bg-brand-sky/20 transition;
+  }
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D5DBE8; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #7B9CF5; }

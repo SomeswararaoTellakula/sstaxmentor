@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GST Registration | SS Tax Mentors</title>
+  <meta name="description" content="Online GST Registration in 3-7 working days. Expert CA professionals handle paperwork, verification & filing. Pan-India service." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #1A4FD6;
+      --blueLt:  #4B7BF5;
+      --navy:    #0D1B3E;
+      --amber:   #F59E0B;
+      --ok:      #16A34A;
+      --muted:   #6B7280;
+      --text:    #1F2937;
+      --bg:      #F4F7FF;
+      --line:    #E5E9F5;
+      --white:   #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px;
+      height: 70px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--blueLt));
+      color: #fff; font-family: 'Poppins', sans-serif;
+      font-weight: 900; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(26,79,214,.25);
+    }
+    .logo-text { line-height: 1.2; }
+    .logo-name { font-family: 'Poppins', sans-serif; font-weight: 900; color: var(--navy); font-size: 17px; }
+    .logo-name span { color: var(--blue); }
+    .logo-tag { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+
+    nav { display: flex; align-items: center; gap: 32px; }
+    nav a { text-decoration: none; font-size: 14px; font-weight: 600; color: var(--text); transition: color .2s; }
+    nav a:hover { color: var(--blue); }
+
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .phone-link { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--navy); text-decoration: none; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 22px; border-radius: 999px; font-size: 14px; font-weight: 700;
+      cursor: pointer; text-decoration: none; border: none; transition: all .2s; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #1843b8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,79,214,.3); }
+    .btn-secondary { background: transparent; color: var(--navy); border: 1.5px solid var(--line); }
+    .btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
+
+    @media(max-width:768px) { nav { display: none; } .header-actions { display: none; } }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(170deg, var(--bg) 0%, #fff 65%);
+      padding: 72px 24px;
+    }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+    }
+    @media(max-width:768px) { .hero-inner { grid-template-columns: 1fr; gap: 40px; } }
+
+    .kicker {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(26,79,214,.08); color: var(--blue);
+      border: 1px solid rgba(26,79,214,.18);
+      padding: 6px 16px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-family: 'Poppins', sans-serif; font-weight: 900;
+      color: var(--navy); font-size: clamp(36px, 5vw, 56px);
+      line-height: 1.05; letter-spacing: -.02em; margin-bottom: 20px;
+    }
+    .hero-title .blue { color: var(--blue); }
+
+    .hero-desc { color: var(--muted); font-size: 17px; line-height: 1.7; margin-bottom: 32px; max-width: 480px; }
+
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 36px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg); border: 1px solid var(--line);
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 600; color: var(--navy);
+    }
+    .chip::before { content: '✓'; color: var(--ok); font-weight: 700; }
+
+    /* ── VISUAL CARD ── */
+    .hero-visual {
+      background: linear-gradient(135deg, rgba(187,211,251,.4), #fff);
+      border: 1px solid var(--line); border-radius: 28px;
+      padding: 40px; box-shadow: 0 20px 60px rgba(26,79,214,.08);
+      position: relative; overflow: hidden;
+    }
+    .hero-visual::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 10%, rgba(26,79,214,.12) 0%, transparent 50%),
+                  radial-gradient(circle at 85% 85%, rgba(75,123,245,.15) 0%, transparent 45%);
+    }
+    .visual-gst-label {
+      position: relative; text-align: center;
+      font-family: 'Poppins', sans-serif; font-weight: 900;
+      font-size: 96px; color: var(--blue); opacity: .06;
+      letter-spacing: .15em; line-height: 1;
+      margin-bottom: -40px;
+    }
+    .visual-card-stack { position: relative; display: flex; flex-direction: column; gap: 16px; }
+
+    .reg-card {
+      background: #fff; border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px 24px; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+    }
+    .reg-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .reg-card-title { font-weight: 700; font-size: 14px; color: var(--navy); }
+    .badge { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .badge-blue { background: rgba(26,79,214,.1); color: var(--blue); }
+    .badge-green { background: rgba(22,163,74,.1); color: var(--ok); }
+    .badge-amber { background: rgba(245,158,11,.1); color: var(--amber); }
+
+    .steps { display: flex; flex-direction: column; gap: 8px; }
+    .step { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .step-dot { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .step-done .step-dot { background: rgba(22,163,74,.15); color: var(--ok); }
+    .step-active .step-dot { background: var(--blue); color: #fff; }
+    .step-pending .step-dot { background: var(--bg); color: var(--muted); border: 1.5px solid var(--line); }
+    .step-done .step-label { color: var(--muted); text-decoration: line-through; }
+    .step-active .step-label { font-weight: 700; color: var(--navy); }
+    .step-pending .step-label { color: var(--muted); }
+
+    .timeline { display: flex; align-items: center; gap: 0; }
+    .tl-item { flex: 1; text-align: center; }
+    .tl-dot { width: 10px; height: 10px; border-radius: 50%; margin: 0 auto 6px; }
+    .tl-dot.done { background: var(--ok); }
+    .tl-dot.active { background: var(--blue); box-shadow: 0 0 0 3px rgba(26,79,214,.2); }
+    .tl-dot.pending { background: var(--line); }
+    .tl-label { font-size: 10px; color: var(--muted); }
+    .tl-line { height: 2px; flex: 1; background: var(--line); }
+    .tl-line.done { background: var(--ok); }
+
+    /* ── TRUST BAR ── */
+    .trust-bar {
+      background: var(--navy); padding: 20px 24px;
+    }
+    .trust-bar-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;
+    }
+    .trust-stat { display: flex; align-items: center; gap: 14px; }
+    .trust-num { font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 28px; color: var(--amber); }
+    .trust-desc { font-size: 13px; color: rgba(255,255,255,.7); font-weight: 500; }
+
+    /* ── FEATURES ── */
+    .section { padding: 72px 24px; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-alt { background: var(--bg); }
+
+    .section-head { text-align: center; margin-bottom: 48px; }
+    .section-title {
+      font-family: 'Poppins', sans-serif; font-weight: 900;
+      color: var(--navy); font-size: clamp(28px, 4vw, 40px);
+      margin-bottom: 12px;
+    }
+    .section-sub { color: var(--muted); font-size: 16px; }
+
+    .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    @media(max-width:900px) { .cards-3 { grid-template-columns: 1fr; } }
+
+    .feature-card {
+      background: #fff; border: 1px solid var(--line); border-radius: 20px;
+      padding: 32px; transition: all .25s;
+    }
+    .feature-card:hover { border-color: rgba(26,79,214,.2); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(26,79,214,.08); }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--bg); color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 20px;
+    }
+    .feature-title { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--navy); font-size: 18px; margin-bottom: 8px; }
+    .feature-text { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+    @media(max-width:768px) { .steps-row { grid-template-columns: 1fr 1fr; } }
+
+    .step-card { text-align: center; padding: 28px 20px; }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid var(--blue);
+      color: var(--blue); font-family: 'Poppins', sans-serif; font-weight: 900; font-size: 22px;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+    }
+    .step-card-title { font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .step-card-desc { color: var(--muted); font-size: 13px; }
+
+    /* ── DOCS ── */
+    .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 860px; margin: 0 auto 40px; }
+    @media(max-width:640px) { .docs-grid { grid-template-columns: 1fr; } }
+
+    .doc-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+    .doc-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .doc-card-title { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--navy); font-size: 17px; }
+    .doc-badge { padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+    .doc-badge.req { background: rgba(22,163,74,.1); color: var(--ok); }
+    .doc-badge.flex { background: rgba(245,158,11,.1); color: var(--amber); }
+
+    .doc-list { display: flex; flex-direction: column; gap: 12px; }
+    .doc-item { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text); }
+    .doc-check { color: var(--ok); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .doc-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; margin-left: 6px; }
+    .doc-tag.mandatory { background: #fee2e2; color: #dc2626; }
+    .doc-tag.optional { background: var(--bg); color: var(--muted); }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a8f 100%);
+      padding: 64px 24px; text-align: center;
+    }
+    .cta-band h2 { font-family: 'Poppins', sans-serif; font-weight: 900; color: #fff; font-size: clamp(28px,4vw,42px); margin-bottom: 16px; }
+    .cta-band p { color: rgba(255,255,255,.7); font-size: 17px; margin-bottom: 32px; }
+    .cta-band .btn-amber { background: var(--amber); color: var(--navy); font-size: 16px; padding: 14px 36px; }
+    .cta-band .btn-amber:hover { background: #d97706; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,.35); }
+    .cta-band .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.4); font-size: 16px; padding: 14px 36px; }
+    .cta-band .btn-outline:hover { border-color: #fff; }
+    .cta-btns { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--navy); padding: 48px 24px 24px; }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; margin-bottom: 40px; }
+    @media(max-width:768px) { .footer-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+    .footer-brand p { color: rgba(255,255,255,.6); font-size: 14px; margin-top: 12px; line-height: 1.7; }
+    .footer-logo-name { font-family: 'Poppins', sans-serif; font-weight: 900; color: #fff; font-size: 18px; }
+    .footer-logo-name span { color: var(--blueLt); }
+    .footer-heading { font-weight: 700; color: #fff; margin-bottom: 16px; font-size: 14px; text-transform: uppercase; letter-spacing: .06em; }
+    .footer-links { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { color: rgba(255,255,255,.6); text-decoration: none; font-size: 14px; transition: color .2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-contact-item { display: flex; align-items: flex-start; gap: 8px; color: rgba(255,255,255,.6); font-size: 14px; margin-bottom: 10px; }
+    .footer-contact-item span:first-child { color: var(--blueLt); flex-shrink: 0; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    .footer-bottom p { color: rgba(255,255,255,.4); font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <div class="logo-icon">S<span style="color:#90b8ff">T</span>M</div>
+      <div class="logo-text">
+        <div class="logo-name">SS TAX <span>MENTORS</span></div>
+        <div class="logo-tag">Reach Us &amp; Relax</div>
+      </div>
+    </a>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#documents">Documents</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a href="tel:+918179726723" class="phone-link">
+        📞 +91 8179726723
+      </a>
+      <a href="http://localhost:5173/track" class="btn btn-secondary">Track</a>
+      <a href="http://localhost:5173/gst-registration" class="btn btn-primary">Apply Now</a>
+    </div>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <!-- Left -->
+    <div>
+      <div class="kicker">🇮🇳 Fast &amp; Hassle-Free GST Registration</div>
+      <h1 class="hero-title">
+        Online GST<br/>Registration<br/>
+        <span class="blue">Made Simple</span>
+      </h1>
+      <p class="hero-desc">
+        Get your GSTIN in 3–7 working days. SS Tax Mentors' expert CA professionals handle all paperwork, document verification, and portal filing — so you can focus on growing your business.
+      </p>
+      <div class="hero-btns">
+        <a href="http://localhost:5173/gst-registration" class="btn btn-primary" style="font-size:15px;padding:12px 28px;">
+          🚀 Start Registration
+        </a>
+        <a href="http://localhost:5173/track" class="btn btn-secondary" style="font-size:15px;padding:12px 28px;">
+          Track Application
+        </a>
+      </div>
+      <div class="chips">
+        <span class="chip">500+ GSTs Registered</span>
+        <span class="chip">3-7 Days Turnaround</span>
+        <span class="chip">100% Online Process</span>
+        <span class="chip">Pan-India Service</span>
+      </div>
+    </div>
+
+    <!-- Right — Visual -->
+    <div class="hero-visual">
+      <div class="visual-gst-label">GST</div>
+      <div class="visual-card-stack">
+        <!-- Application status card -->
+        <div class="reg-card">
+          <div class="reg-card-top">
+            <span class="reg-card-title">GST Application</span>
+            <span class="badge badge-blue">In Progress</span>
+          </div>
+          <div class="steps">
+            <div class="step step-done">
+              <div class="step-dot">✓</div>
+              <span class="step-label">Documents collected</span>
+            </div>
+            <div class="step step-done">
+              <div class="step-dot">✓</div>
+              <span class="step-label">Verification complete</span>
+            </div>
+            <div class="step step-active">
+              <div class="step-dot">3</div>
+              <span class="step-label">Filing on GST portal</span>
+            </div>
+            <div class="step step-pending">
+              <div class="step-dot">4</div>
+              <span class="step-label">ARN generated</span>
+            </div>
+            <div class="step step-pending">
+              <div class="step-dot">5</div>
+              <span class="step-label">GSTIN approved</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline mini card -->
+        <div class="reg-card">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:14px;">⚡ Typical Timeline — 3 to 7 days</div>
+          <div style="display:flex;align-items:center;gap:0;">
+            <div class="tl-item"><div class="tl-dot done"></div><div class="tl-label">Day 1<br/>Docs</div></div>
+            <div class="tl-line done"></div>
+            <div class="tl-item"><div class="tl-dot done"></div><div class="tl-label">Day 2<br/>Verify</div></div>
+            <div class="tl-line done"></div>
+            <div class="tl-item"><div class="tl-dot active"></div><div class="tl-label">Day 3<br/>File</div></div>
+            <div class="tl-line"></div>
+            <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Day 5<br/>ARN</div></div>
+            <div class="tl-line"></div>
+            <div class="tl-item"><div class="tl-dot pending"></div><div class="tl-label">Day 7<br/>GSTIN</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST BAR ── -->
+<div class="trust-bar">
+  <div class="trust-bar-inner">
+    <div class="trust-stat">
+      <div class="trust-num">500+</div>
+      <div class="trust-desc">GST Registrations<br/>Completed</div>
+    </div>
+    <div class="trust-stat">
+      <div class="trust-num">3–7</div>
+      <div class="trust-desc">Day Average<br/>Turnaround</div>
+    </div>
+    <div class="trust-stat">
+      <div class="trust-num">99%</div>
+      <div class="trust-desc">Approval<br/>Accuracy</div>
+    </div>
+    <div class="trust-stat">
+      <div class="trust-num">28+</div>
+      <div class="trust-desc">States<br/>Covered</div>
+    </div>
+    <a href="http://localhost:5173/gst-registration" class="btn btn-primary" style="background:var(--amber);color:var(--navy);white-space:nowrap;">
+      Apply for GST →
+    </a>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="kicker" style="margin:0 auto 16px;">Why SS Tax Mentors</div>
+      <h2 class="section-title">Built for Seamless GST Registration</h2>
+      <p class="section-sub">From document collection to GSTIN delivery — we handle every step</p>
+    </div>
+    <div class="cards-3">
+      <div class="feature-card">
+        <div class="feature-icon">👨‍💼</div>
+        <div class="feature-title">Handled by Experts</div>
+        <p class="feature-text">Qualified CA professionals and compliance experts process your application with maximum accuracy and zero errors.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <div class="feature-title">Tracked Until Approval</div>
+        <p class="feature-text">Real-time status updates via email and WhatsApp. Track your ARN and GSTIN delivery every step of the way.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">Verified Before Filing</div>
+        <p class="feature-text">All documents are double-verified for accuracy and compliance before submission to avoid rejection or delays.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">100% Online Process</div>
+        <p class="feature-text">Upload documents from anywhere. No physical visits required. The entire process is fully digital and paperless.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <div class="feature-title">Transparent Pricing</div>
+        <p class="feature-text">No hidden fees, no surprises. Clear pricing upfront with a complete breakdown of government fees and service charges.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📞</div>
+        <div class="feature-title">Dedicated Support</div>
+        <p class="feature-text">Direct WhatsApp and call support. Your dedicated advisor is always available for queries and follow-ups.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section section-alt" id="how">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="kicker" style="margin:0 auto 16px;">Simple Process</div>
+      <h2 class="section-title">How GST Registration Works</h2>
+      <p class="section-sub">4 simple steps from application to GSTIN</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-card-title">Fill the Form</div>
+        <p class="step-card-desc">Submit your business and personal details online in minutes</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-card-title">Upload Documents</div>
+        <p class="step-card-desc">Upload Aadhaar, PAN, address proof and business documents</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-card-title">We File &amp; Track</div>
+        <p class="step-card-desc">Our experts verify, file on the GST portal and get your ARN</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-card-title">Receive GSTIN</div>
+        <p class="step-card-desc">Get your GSTIN delivered via email and WhatsApp in 3–7 days</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:36px;">
+      <a href="http://localhost:5173/gst-registration" class="btn btn-primary" style="font-size:15px;padding:13px 32px;">
+        Start Your Registration →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── DOCUMENTS ── -->
+<section class="section" id="documents">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="kicker" style="margin:0 auto 16px;">Be Prepared</div>
+      <h2 class="section-title">Documents Required</h2>
+      <p class="section-sub">Keep these ready before you begin your application</p>
+    </div>
+    <div class="docs-grid">
+      <div class="doc-card">
+        <div class="doc-card-head">
+          <span class="doc-card-title">Mandatory</span>
+          <span class="doc-badge req">Required</span>
+        </div>
+        <div class="doc-list">
+          <div class="doc-item"><span class="doc-check">✓</span> Aadhaar Card</div>
+          <div class="doc-item"><span class="doc-check">✓</span> PAN Card</div>
+          <div class="doc-item"><span class="doc-check">✓</span> Passport-size Photo</div>
+          <div class="doc-item"><span class="doc-check">✓</span> Firm Name</div>
+          <div class="doc-item"><span class="doc-check">✓</span> Firm Full Address</div>
+          <div class="doc-item"><span class="doc-check">✓</span> Latest Electricity Bill (Office/Business Premises)</div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-head">
+          <span class="doc-card-title">Contact &amp; Optional</span>
+          <span class="doc-badge flex">Flexible</span>
+        </div>
+        <div class="doc-list">
+          <div class="doc-item"><span class="doc-check">✓</span> Mobile Number <span class="doc-tag mandatory">Mandatory</span></div>
+          <div class="doc-item"><span class="doc-check">✓</span> Email ID <span class="doc-tag mandatory">Mandatory</span></div>
+          <div class="doc-item"><span class="doc-check">✓</span> Rental Agreement <span class="doc-tag optional">Optional</span></div>
+          <div class="doc-item"><span class="doc-check">✓</span> Owner Aadhaar &amp; Mobile <span class="doc-tag optional">Optional</span></div>
+          <div class="doc-item"><span class="doc-check">✓</span> Witness Aadhaar &amp; Mobile <span class="doc-tag optional">Optional</span></div>
+          <div class="doc-item"><span class="doc-check">✓</span> Property Tax Receipt <span class="doc-tag optional">Optional</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <a href="http://localhost:5173/gst-registration" class="btn btn-primary" style="font-size:15px;padding:13px 32px;">
+        I Have My Documents — Start Now →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BAND ── -->
+<section class="cta-band" id="contact">
+  <h2>Ready to Get Your GSTIN?</h2>
+  <p>Join 500+ businesses who trust SS Tax Mentors for seamless GST registration</p>
+  <div class="cta-btns">
+    <a href="http://localhost:5173/gst-registration" class="btn btn-amber">
+      🚀 Start Registration Now
+    </a>
+    <a href="tel:+918179726723" class="btn btn-outline">
+      📞 Call +91 8179726723
+    </a>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo-name">SS TAX <span>MENTORS</span></div>
+        <p>Your trusted partner for online GST registration and tax compliance across India. Fast, accurate, and fully supported by expert CA professionals.</p>
+      </div>
+      <div>
+        <div class="footer-heading">Quick Links</div>
+        <div class="footer-links">
+          <a href="http://localhost:5173/gst-registration">GST Registration</a>
+          <a href="http://localhost:5173/track">Track Application</a>
+          <a href="http://localhost:5173/privacy">Privacy Policy</a>
+          <a href="http://localhost:5173/admin/login">Admin</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Contact</div>
+        <div class="footer-contact-item"><span>📞</span> +91 8179726723</div>
+        <div class="footer-contact-item"><span>✉️</span> sstax9646@gmail.com</div>
+        <div class="footer-contact-item"><span>🌐</span> www.sstaxmentors.com</div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 SS Tax Mentors. All rights reserved.</p>
+      <p>GST Registration Portal — Powered by expert CA services</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
