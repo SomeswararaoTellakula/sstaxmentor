@@ -118,6 +118,9 @@ export async function registerSubmission(req, res, next) {
       pdfFileRef = pdf.fileRef;
       pdfBuffer = pdf.buffer;
       reg.delivery.pdfUrl = pdfFileRef.url;
+      // Needed to build a SIGNED download URL later. Cloudinary refuses
+      // unsigned delivery of raw assets, which is how a PDF is stored.
+      reg.delivery.pdfPublicId = pdfFileRef.publicId;
       await reg.save();
     } catch (e) {
       logger.error(`PDF generation failed: ${e.message}\n${e.stack}`);
@@ -163,23 +166,27 @@ export async function registerSubmission(req, res, next) {
 }
 
 export async function downloadPdf(req, res, next) {
+  const { applicationId } = req.params;
   try {
-    const { applicationId } = req.params;
     const reg = await GstRegistration.findOne({ applicationId });
     if (!reg || !reg.delivery?.pdfUrl) return res.status(404).json({ error: 'PDF not found' });
-    const url = await getReadableUrl({ ...reg.documents?.aadhaarCard, url: reg.delivery.pdfUrl, publicId: undefined });
-    if (reg.delivery.pdfUrl.startsWith('http')) {
-      const remote = await axios.get(reg.delivery.pdfUrl, { responseType: 'stream', timeout: 20000 });
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-      return remote.data.pipe(res);
-    }
-    const remote = await axios.get(`${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`, { responseType: 'stream', timeout: 20000 });
+
+    // Sign the URL when we have the publicId. Cloudinary refuses unsigned
+    // delivery of raw assets, so the stored secure_url alone returns 401.
+    const url = await getReadableUrl({
+      url: reg.delivery.pdfUrl,
+      publicId: reg.delivery.pdfPublicId,
+      mimeType: 'application/pdf',
+    });
+    if (!url) return res.status(404).json({ error: 'PDF not available' });
+
+    const remote = await axios.get(url, { responseType: 'stream', timeout: 20000 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-    remote.data.pipe(res);
+    return remote.data.pipe(res);
   } catch (e) {
-    next(e);
+    logger.error(`PDF download failed for ${applicationId}: ${e.message}`);
+    return next(e);
   }
 }
 
@@ -216,7 +223,15 @@ export async function retryFailedDeliveries() {
   }).cursor();
 
   for await (const reg of cursor) {
-    const pdfFileRef = reg.delivery.pdfUrl ? { url: reg.delivery.pdfUrl, originalName: `${reg.applicationId}-acknowledgement.pdf`, mimeType: 'application/pdf' } : null;
+    // Carry publicId through so the retry can sign the URL as well.
+    const pdfFileRef = reg.delivery.pdfUrl
+      ? {
+          url: reg.delivery.pdfUrl,
+          publicId: reg.delivery.pdfPublicId,
+          originalName: `${reg.applicationId}-acknowledgement.pdf`,
+          mimeType: 'application/pdf',
+        }
+      : null;
     if (reg.delivery.sheetSynced.ok === false && (reg.delivery.sheetSynced.attempts || 0) < 3) {
       const r = await appendRegistration(reg);
       reg.delivery.sheetSynced = { ...r, attempts: (reg.delivery.sheetSynced.attempts || 0) + 1 };
