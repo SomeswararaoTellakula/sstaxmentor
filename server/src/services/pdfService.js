@@ -20,16 +20,11 @@ const BRAND = {
   ok: '#16A34A',
 };
 
-function istNow(date = new Date()) {
-  return new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-}
 function fmtIst(date) {
-  const d = istNow(date);
-  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 function fmtIstDate(date) {
-  const d = istNow(date);
-  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function addHeader(doc, reg) {
@@ -63,10 +58,10 @@ function addFooter(doc) {
   }
 }
 
-function sectionTitle(doc, y, title) {
+function sectionTitle(doc, y, title, ruleEndX) {
   doc.font('Helvetica-Bold').fontSize(13).fillColor(BRAND.navy).text(title, 40, y);
   const lineY = y + 18;
-  doc.moveTo(40, lineY).lineTo(doc.page.width - 40, lineY).strokeColor(BRAND.blue).lineWidth(1).stroke();
+  doc.moveTo(40, lineY).lineTo(ruleEndX || doc.page.width - 40, lineY).strokeColor(BRAND.blue).lineWidth(1).stroke();
   return lineY + 14;
 }
 
@@ -74,30 +69,23 @@ function fieldRow(doc, y, label, value) {
   const text = value || '—';
   const valueWidth = doc.page.width - 270;
   doc.font('Helvetica').fontSize(10);
+  const labelH = doc.heightOfString(label, { width: 180 });
   doc.fillColor(BRAND.muted).text(label, 48, y, { width: 180 });
   doc.font('Helvetica-Bold').fontSize(10);
-  const h = doc.heightOfString(text, { width: valueWidth });
+  const valueH = doc.heightOfString(text, { width: valueWidth });
   doc.fillColor(BRAND.navy).text(text, 230, y, { width: valueWidth });
-  return y + Math.max(18, h + 6);
+  return y + Math.max(18, Math.max(labelH, valueH) + 6);
 }
 
-export async function generateAcknowledgementPdf(reg, photoBuffer = null) {
-  const tmpFile = path.join(TMP_DIR, `${reg.applicationId}-${uuidv4()}.pdf`);
-  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
-  const stream = fs.createWriteStream(tmpFile);
-  doc.pipe(stream);
-
+function _buildPdf(doc, reg, photoBuffer) {
   let y = addHeader(doc, reg);
   doc.font('Helvetica-Bold').fontSize(18).fillColor(BRAND.navy).text('GST Registration — Application Acknowledgement', 40, y, { width: doc.page.width - 80, align: 'center' });
   y += 36;
 
+  y = sectionTitle(doc, y, '1. Applicant Details', photoBuffer ? 430 : null);
   if (photoBuffer) {
-    try {
-      doc.image(photoBuffer, doc.page.width - 150, y - 6, { width: 80, height: 96, fit: [80, 96] });
-    } catch {}
+    try { doc.image(photoBuffer, doc.page.width - 150, y, { width: 80, height: 96, fit: [80, 96] }); } catch {}
   }
-
-  y = sectionTitle(doc, y, '1. Applicant Details');
   y = fieldRow(doc, y, 'Applicant Name', reg.applicantName);
   y = fieldRow(doc, y, 'Mobile Number', formatMobileDisplay(reg.mobile));
   y = fieldRow(doc, y, 'Alternate Mobile', reg.altMobile ? formatMobileDisplay(reg.altMobile) : '—');
@@ -172,7 +160,7 @@ export async function generateAcknowledgementPdf(reg, photoBuffer = null) {
     '4. GSTIN is delivered on approval from GSTN.',
   ];
   let sy = nextY + 36;
-  for (const s of steps) { doc.fillColor(BRAND.text).text(s, 72, sy); sy += 18; }
+  for (const s of steps) { doc.fillColor(BRAND.navy).text(s, 72, sy); sy += 18; }
 
   doc.addPage();
   doc.font('Helvetica-Oblique').fontSize(10).fillColor(BRAND.muted).text(
@@ -180,21 +168,34 @@ export async function generateAcknowledgementPdf(reg, photoBuffer = null) {
     40, 120, { width: doc.page.width - 80, align: 'center' }
   );
 
-  addFooter(doc); // must be called after all pages are added, before doc.end()
+  addFooter(doc);
+}
 
+export async function generateAcknowledgementPdf(reg, photoBuffer = null) {
+  const tmpFile = path.join(TMP_DIR, `${reg.applicationId}-${uuidv4()}.pdf`);
+  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
+  const stream = fs.createWriteStream(tmpFile);
+  doc.pipe(stream);
+  _buildPdf(doc, reg, photoBuffer);
   doc.end();
   await new Promise((resolve, reject) => {
     stream.on('finish', resolve);
     stream.on('error', reject);
   });
-
   const uploaded = await uploadFile(tmpFile, `${reg.applicationId}-acknowledgement.pdf`, 'application/pdf', 'gst-pdfs');
   try { fs.unlinkSync(tmpFile); } catch {}
   return uploaded;
+}
+
+export function streamPdfToResponse(reg, photoBuffer = null, res) {
+  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
+  doc.pipe(res);
+  _buildPdf(doc, reg, photoBuffer);
+  doc.end();
 }
 
 export function streamPdfFromDisk(localPath) {
   return fs.createReadStream(localPath);
 }
 
-export default { generateAcknowledgementPdf };
+export default { generateAcknowledgementPdf, streamPdfToResponse };

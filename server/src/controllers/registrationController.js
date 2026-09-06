@@ -2,7 +2,7 @@ import { body, validationResult } from 'express-validator';
 import GstRegistration from '../models/GstRegistration.js';
 import { getNextGstApplicationId } from '../models/Counter.js';
 import { uploadFile, getReadableUrl } from '../services/storageService.js';
-import { generateAcknowledgementPdf } from '../services/pdfService.js';
+import { generateAcknowledgementPdf, streamPdfToResponse } from '../services/pdfService.js';
 import { appendRegistration, updateStatus } from '../services/sheetsService.js';
 import { sendApplicantAcknowledgement, sendAdminNotification, sendStatusUpdate } from '../services/mailService.js';
 import { sendRegistrationReceived, sendStatusUpdate as sendWaStatus, sendArnGenerated, sendAdminNotification as sendWaAdmin } from '../services/whatsappService.js';
@@ -161,18 +161,38 @@ export async function downloadPdf(req, res, next) {
   try {
     const { applicationId } = req.params;
     const reg = await GstRegistration.findOne({ applicationId });
-    if (!reg || !reg.delivery?.pdfUrl) return res.status(404).json({ error: 'PDF not found' });
-    const url = await getReadableUrl({ ...reg.documents?.aadhaarCard, url: reg.delivery.pdfUrl, publicId: undefined });
-    if (reg.delivery.pdfUrl.startsWith('http')) {
-      const remote = await axios.get(reg.delivery.pdfUrl, { responseType: 'stream', timeout: 20000 });
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-      return remote.data.pipe(res);
+    if (!reg) return res.status(404).json({ error: 'Application not found' });
+
+    // stream from Cloudinary if available
+    if (reg.delivery?.pdfUrl) {
+      try {
+        const fetchUrl = reg.delivery.pdfUrl.startsWith('http')
+          ? reg.delivery.pdfUrl
+          : `${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`;
+        const remote = await axios.get(fetchUrl, { responseType: 'stream', timeout: 20000 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
+        return remote.data.pipe(res);
+      } catch (e) {
+        logger.warn(`PDF stream from storage failed, regenerating: ${e.message}`);
+      }
     }
-    const remote = await axios.get(`${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`, { responseType: 'stream', timeout: 20000 });
+
+    // regenerate and stream directly to browser without storing
+    let photoBuffer = null;
+    try {
+      if (reg.documents?.photo?.url) {
+        const url = await getReadableUrl(reg.documents.photo);
+        if (url) {
+          const r = await axios.get(url, { responseType: 'arraybuffer', timeout: 15000 });
+          photoBuffer = Buffer.from(r.data);
+        }
+      }
+    } catch (e) { logger.warn('Photo fetch for PDF regen failed', e.message); }
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-    remote.data.pipe(res);
+    await streamPdfToResponse(reg, photoBuffer, res);
   } catch (e) {
     next(e);
   }

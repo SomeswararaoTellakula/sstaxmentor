@@ -47,6 +47,7 @@ export async function uploadFile(localPath, originalName, mimeType, folder = 'gs
     let uploaded;
     try {
       uploaded = await cloudinary.uploader.upload(localPath, {
+        upload_preset: 'sstaxmentor',
         public_id: publicId,
         resource_type: resourceType,
         folder,

@@ -19,7 +19,6 @@ export default function GstApply() {
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (e) {
       console.warn('Auto PDF download failed', e);
-      if (fallbackUrl) window.location.href = fallbackUrl;
     }
   }
 
