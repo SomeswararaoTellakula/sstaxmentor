@@ -171,21 +171,45 @@ export async function downloadPdf(req, res, next) {
     const reg = await GstRegistration.findOne({ applicationId });
     if (!reg || !reg.delivery?.pdfUrl) return res.status(404).json({ error: 'PDF not found' });
 
-    // Sign the URL when we have the publicId. Cloudinary refuses unsigned
-    // delivery of raw assets, so the stored secure_url alone returns 401.
-    const url = await getReadableUrl({
-      url: reg.delivery.pdfUrl,
-      publicId: reg.delivery.pdfPublicId,
-      mimeType: 'application/pdf',
-    });
-    if (!url) return res.status(404).json({ error: 'PDF not available' });
+    // Try every route to the file rather than betting on one. Cloudinary is
+    // fussy about raw assets: signed works on some accounts, the plain
+    // secure_url on others. Whichever responds first wins.
+    const candidates = [];
+    if (reg.delivery.pdfPublicId) {
+      const signed = await getReadableUrl({
+        url: reg.delivery.pdfUrl,
+        publicId: reg.delivery.pdfPublicId,
+        mimeType: 'application/pdf',
+      });
+      if (signed) candidates.push(['signed', signed]);
+    }
+    candidates.push(['stored', reg.delivery.pdfUrl]);
+    if (!/^https?:\/\//i.test(reg.delivery.pdfUrl)) {
+      candidates.push(['local', `${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`]);
+    }
 
-    const remote = await axios.get(url, { responseType: 'stream', timeout: 20000 });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-    return remote.data.pipe(res);
+    let lastError = null;
+    for (const [kind, url] of candidates) {
+      try {
+        const remote = await axios.get(url, { responseType: 'arraybuffer', timeout: 25000 });
+        const buf = Buffer.from(remote.data);
+        if (!buf.length) throw new Error('empty body');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Length', buf.length);
+        res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
+        res.setHeader('Cache-Control', 'no-store');
+        logger.info(`PDF served for ${applicationId} via ${kind} (${buf.length} bytes)`);
+        return res.end(buf);
+      } catch (e) {
+        lastError = `${kind}: ${e.response?.status || ''} ${e.message}`;
+        logger.warn(`PDF fetch ${lastError}`);
+      }
+    }
+
+    logger.error(`PDF download failed for ${applicationId} — ${lastError}`);
+    return res.status(502).json({ error: 'Could not retrieve PDF', detail: lastError });
   } catch (e) {
-    logger.error(`PDF download failed for ${applicationId}: ${e.message}`);
+    logger.error(`PDF download error for ${applicationId}: ${e.message}`);
     return next(e);
   }
 }
