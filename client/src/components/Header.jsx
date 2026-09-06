@@ -25,14 +25,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur border-b border-brand-line">
       <div className="section-wrap flex items-center justify-between h-16 md:h-20">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-brand-blueLt flex items-center justify-center text-white font-heading font-black text-xl shadow-sm">
-            S<span className="text-brand-sky">T</span>M
-          </div>
-          <div className="leading-tight">
-            <div className="font-heading font-black text-brand-navy text-xl tracking-tight">SS TAX <span className="text-brand-blue">MENTORS</span></div>
-            <div className="text-[10px] font-semibold text-brand-muted tracking-wider uppercase">Reach Us & Relax</div>
-          </div>
+        <Link to="/" className="flex items-center shrink-0">
+          <img
+            src="/logo.png"
+            alt="SS Tax Mentors — Reach Us &amp; Relax"
+            className="h-10 md:h-12 w-auto"
+            width="365"
+            height="160"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
