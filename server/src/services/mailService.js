@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getMailer } from '../config/mailer.js';
+import axios from 'axios';
 import logger from '../utils/logger.js';
 import { getReadableUrl } from './storageService.js';
 import { formatMobileDisplay } from '../utils/validators.js';
@@ -95,53 +95,97 @@ th{background:#F5F8FF;color:#1A4FD6}
 </body></html>`;
 }
 
+const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
+
+function brevoConfigured() {
+  return !!(process.env.BREVO_API_KEY && process.env.MAIL_FROM_EMAIL);
+}
+
+export function verifyMailer() {
+  if (!brevoConfigured()) {
+    logger.warn('BREVO_API_KEY or MAIL_FROM_EMAIL missing — email delivery disabled');
+    return false;
+  }
+  logger.info('Brevo email API configured');
+  return true;
+}
+
+/** Fetch the PDF and base64-encode it, which is what Brevo expects. */
 async function buildAttachment(pdfFileRef) {
   try {
     const url = await getReadableUrl(pdfFileRef);
-    if (!url || url.startsWith('/') && !process.env.API_BASE_URL) return null;
-    const axios = (await import('axios')).default;
+    if (!url || (url.startsWith('/') && !process.env.API_BASE_URL)) return null;
     const res = await axios.get(url, { responseType: 'arraybuffer', timeout: 20000 });
     return {
-      filename: pdfFileRef?.originalName || 'acknowledgement.pdf',
-      content: Buffer.from(res.data, 'binary'),
-      contentType: pdfFileRef?.mimeType || 'application/pdf',
+      name: pdfFileRef?.originalName || 'acknowledgement.pdf',
+      content: Buffer.from(res.data).toString('base64'),
     };
   } catch (e) {
-    logger.warn('PDF attach fetch failed', e.message);
+    logger.warn(`PDF attach fetch failed: ${e.message}`);
     return null;
   }
 }
 
-export async function sendApplicantAcknowledgement(reg, pdfFileRef) {
-  const mailer = getMailer();
-  if (!mailer) return { ok: false, error: 'SMTP not configured' };
-  const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
-  const attachments = [];
-  if (pdfFileRef) {
-    const a = await buildAttachment(pdfFileRef);
-    if (a) attachments.push(a);
-  }
+/** Single transport for every email. Returns Brevo's { messageId }. */
+async function sendViaBrevo({ to, subject, html, text, attachment, replyTo }) {
+  const recipients = String(to || '')
+    .split(',')
+    .map((e) => ({ email: e.trim() }))
+    .filter((r) => r.email);
+  if (!recipients.length) throw new Error('No valid recipient');
+
+  const payload = {
+    sender: {
+      name: process.env.MAIL_FROM_NAME || 'SS Tax Mentors',
+      email: process.env.MAIL_FROM_EMAIL,
+    },
+    to: recipients,
+    subject,
+    htmlContent: html,
+  };
+  if (text) payload.textContent = text;
+  if (replyTo) payload.replyTo = { email: replyTo };
+  if (attachment) payload.attachment = [attachment];
+
   try {
-    const info = await mailer.sendMail({
-      from: process.env.MAIL_FROM || 'SS Tax Mentors <someshtellakula@gmail.com>',
+    const res = await axios.post(BREVO_URL, payload, {
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+      },
+      timeout: 20000,
+    });
+    return res.data;
+  } catch (e) {
+    const detail = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+    throw new Error(`Brevo ${e.response?.status || ''}: ${detail}`);
+  }
+}
+
+export async function sendApplicantAcknowledgement(reg, pdfFileRef) {
+  if (!brevoConfigured()) return { ok: false, error: 'Brevo not configured' };
+  const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
+  const attachment = pdfFileRef ? await buildAttachment(pdfFileRef) : null;
+  try {
+    const info = await sendViaBrevo({
       to: reg.email,
-      replyTo: process.env.ADMIN_EMAIL || 'someshtellakula@gmail.com',
+      replyTo: process.env.ADMIN_EMAIL,
       subject: `GST Registration Received — ${reg.applicationId} | SS Tax Mentors`,
       text: applicantText({ reg, baseUrl }),
       html: applicantHtml({ reg, baseUrl, pdfAttachmentName: pdfFileRef?.originalName }),
-      attachments,
+      attachment,
     });
     logger.info(`Applicant email sent ${reg.applicationId}: ${info.messageId}`);
     return { ok: true, at: new Date(), messageId: info.messageId };
   } catch (e) {
-    logger.error('Applicant email error', e.message);
+    logger.error(`Applicant email error: ${e.message}`);
     return { ok: false, error: e.message };
   }
 }
 
 export async function sendAdminNotification(reg, pdfFileRef) {
-  const mailer = getMailer();
-  if (!mailer) return { ok: false, error: 'SMTP not configured' };
+  if (!brevoConfigured()) return { ok: false, error: 'Brevo not configured' };
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) return { ok: false, error: 'ADMIN_EMAIL not set' };
   const adminUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
@@ -154,38 +198,33 @@ export async function sendAdminNotification(reg, pdfFileRef) {
     if (!ref) { docLinks[labels[i]] = null; continue; }
     docLinks[labels[i]] = { url: await getReadableUrl(ref), name: ref.originalName };
   }
-  const attachments = [];
-  if (pdfFileRef) {
-    const a = await buildAttachment(pdfFileRef);
-    if (a) attachments.push(a);
-  }
+  const attachment = pdfFileRef ? await buildAttachment(pdfFileRef) : null;
   try {
-    const info = await mailer.sendMail({
-      from: process.env.MAIL_FROM || 'SS Tax Mentors <someshtellakula@gmail.com>',
+    const info = await sendViaBrevo({
       to: adminEmail,
-      subject: `🔔 New GST Registration — ${reg.firmName} (${reg.applicationId})`,
+      replyTo: reg.email,
+      subject: `New GST Registration — ${reg.firmName} (${reg.applicationId})`,
       html: adminHtml({ reg, docLinks, adminUrl }),
-      attachments,
+      attachment,
     });
     logger.info(`Admin email sent ${reg.applicationId}: ${info.messageId}`);
     return { ok: true, at: new Date(), messageId: info.messageId };
   } catch (e) {
-    logger.error('Admin email error', e.message);
+    logger.error(`Admin email error: ${e.message}`);
     return { ok: false, error: e.message };
   }
 }
 
 export async function sendStatusUpdate(reg, newStatus, extras = {}) {
-  const mailer = getMailer();
-  if (!mailer) return { ok: false, error: 'SMTP not configured' };
+  if (!brevoConfigured()) return { ok: false, error: 'Brevo not configured' };
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
   const subject = extras.arn
     ? `ARN Generated — ${reg.applicationId} (${extras.arn}) | SS Tax Mentors`
     : `Status Update — ${reg.applicationId} is now ${newStatus} | SS Tax Mentors`;
   try {
-    await mailer.sendMail({
-      from: process.env.MAIL_FROM || 'SS Tax Mentors <someshtellakula@gmail.com>',
+    await sendViaBrevo({
       to: reg.email,
+      replyTo: process.env.ADMIN_EMAIL,
       subject,
       html: `
         <div style="font-family:Inter,Arial;max-width:560px;margin:auto;padding:20px;background:#fff;border:1px solid #E5E7EB;border-radius:12px">
@@ -203,9 +242,9 @@ export async function sendStatusUpdate(reg, newStatus, extras = {}) {
     });
     return { ok: true, at: new Date() };
   } catch (e) {
-    logger.error('Status email error', e.message);
+    logger.error(`Status email error: ${e.message}`);
     return { ok: false, error: e.message };
   }
 }
 
-export default { sendApplicantAcknowledgement, sendAdminNotification, sendStatusUpdate };
+export default { sendApplicantAcknowledgement, sendAdminNotification, sendStatusUpdate, verifyMailer };
