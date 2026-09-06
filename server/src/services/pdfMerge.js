@@ -1,8 +1,10 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import logger from '../utils/logger.js';
 
-const A4 = [595.28, 841.89];
-const NAVY = rgb(0.043, 0.106, 0.227);
+const PAGE_W = 595.28;        // A4 width — keeps the deck a consistent width
+const MAX_PAGE_H = 900;       // don't let a very tall scan run away
+const HEADER_H = 44;
+const MARGIN = 18;
 const BLUE = rgb(0.102, 0.310, 0.839);
 
 /** Documents appended to the client's PDF, in this order. */
@@ -19,13 +21,13 @@ function isImage(mime) {
 /**
  * Append each supplied document to the acknowledgement PDF.
  *
- * Images become a full page with a heading. PDFs have their pages copied in
- * as-is. Anything that fails is skipped with a warning — a broken attachment
- * must never cost the client their acknowledgement.
+ * Image pages are sized to the image itself rather than padded out to A4, so
+ * there is no dead space above and below the scan. PDF documents have their
+ * pages copied in as-is — their own margins come from the source file and
+ * cannot be trimmed safely without knowing where the content sits.
  *
- * @param {Buffer} baseBuffer  the acknowledgement PDF from pdfkit
- * @param {Object} docBuffers  { aadhaarCard: { buffer, mimeType, originalName }, ... }
- * @returns {Promise<Buffer>}  merged PDF
+ * Any document that fails is skipped with a warning; a bad attachment must
+ * never cost the client their acknowledgement.
  */
 export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
   if (!docBuffers || !Object.keys(docBuffers).length) return baseBuffer;
@@ -51,30 +53,30 @@ export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
           ? await out.embedPng(doc.buffer)
           : await out.embedJpg(doc.buffer);
 
-        const page = out.addPage(A4);
-        const [pw, ph] = A4;
+        // Fit to the page width first, then clamp if that makes it too tall.
+        const availW = PAGE_W - MARGIN * 2;
+        let scale = availW / img.width;
+        let w = img.width * scale;
+        let h = img.height * scale;
 
-        // heading band
-        page.drawRectangle({ x: 0, y: ph - 64, width: pw, height: 64, color: BLUE });
-        page.drawText(label, {
-          x: 40, y: ph - 40, size: 16, font, color: rgb(1, 1, 1),
-        });
+        const maxImgH = MAX_PAGE_H - HEADER_H - MARGIN * 2;
+        if (h > maxImgH) {
+          scale = maxImgH / img.height;
+          w = img.width * scale;
+          h = img.height * scale;
+        }
+
+        // Page is exactly as tall as it needs to be — no empty space.
+        const pageH = HEADER_H + h + MARGIN * 2;
+        const page = out.addPage([PAGE_W, pageH]);
+
+        page.drawRectangle({ x: 0, y: pageH - HEADER_H, width: PAGE_W, height: HEADER_H, color: BLUE });
+        page.drawText(label, { x: MARGIN, y: pageH - 27, size: 13, font, color: rgb(1, 1, 1) });
         page.drawText(doc.originalName || '', {
-          x: 40, y: ph - 56, size: 9, font: fontRegular, color: rgb(0.85, 0.9, 1),
+          x: MARGIN, y: pageH - 39, size: 8, font: fontRegular, color: rgb(0.85, 0.9, 1),
         });
 
-        // fit the image inside the remaining area, preserving aspect ratio
-        const maxW = pw - 80;
-        const maxH = ph - 64 - 80;
-        const scale = Math.min(maxW / img.width, maxH / img.height, 1);
-        const w = img.width * scale;
-        const h = img.height * scale;
-        page.drawImage(img, {
-          x: (pw - w) / 2,
-          y: (ph - 64 - h) / 2 + 20,
-          width: w,
-          height: h,
-        });
+        page.drawImage(img, { x: (PAGE_W - w) / 2, y: MARGIN, width: w, height: h });
       } else if (/pdf$/i.test(doc.mimeType)) {
         const src = await PDFDocument.load(doc.buffer, { ignoreEncryption: true });
         const pages = await out.copyPages(src, src.getPageIndices());
@@ -82,13 +84,11 @@ export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
           out.addPage(p);
           if (i === 0) {
             const { width, height } = p.getSize();
-            // small corner label so the page is identifiable
             p.drawRectangle({
-              x: width - 220, y: height - 26, width: 210, height: 20,
-              color: BLUE, opacity: 0.92,
+              x: 0, y: height - 26, width, height: 26, color: BLUE, opacity: 0.95,
             });
             p.drawText(label, {
-              x: width - 212, y: height - 21, size: 9, font, color: rgb(1, 1, 1),
+              x: MARGIN, y: height - 18, size: 11, font, color: rgb(1, 1, 1),
             });
           }
         });
