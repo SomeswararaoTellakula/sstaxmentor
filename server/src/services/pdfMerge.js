@@ -1,8 +1,8 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, PDFName, rgb } from 'pdf-lib';
 import logger from '../utils/logger.js';
 
 const PAGE_W = 595.28;        // A4 width — keeps the deck a consistent width
-const MAX_PAGE_H = 900;       // don't let a very tall scan run away
+const MAX_PAGE_H = 900;
 const HEADER_H = 44;
 const MARGIN = 18;
 const BLUE = rgb(0.102, 0.310, 0.839);
@@ -19,16 +19,44 @@ function isImage(mime) {
 }
 
 /**
- * Append each supplied document to the acknowledgement PDF.
+ * Does this source page actually contain anything?
  *
- * Image pages are sized to the image itself rather than padded out to A4, so
- * there is no dead space above and below the scan. PDF documents have their
- * pages copied in as-is — their own margins come from the source file and
- * cannot be trimmed safely without knowing where the content sits.
+ * Scanned and downloaded ID PDFs often carry several padding pages with no
+ * drawing operations at all. A page counts as content if it references an
+ * image XObject, or if its content stream is big enough to be real text.
  *
- * Any document that fails is skipped with a warning; a bad attachment must
- * never cost the client their acknowledgement.
+ * On any uncertainty we KEEP the page — dropping a client's document would be
+ * far worse than leaving one blank sheet in.
  */
+function pageHasContent(page) {
+  try {
+    const res = page.node.Resources();
+    const xobjects = res?.lookup?.(PDFName.of('XObject'));
+    if (xobjects?.keys && xobjects.keys().length > 0) return true;
+
+    const fonts = res?.lookup?.(PDFName.of('Font'));
+    const hasFonts = fonts?.keys && fonts.keys().length > 0;
+
+    const contents = page.node.Contents();
+    if (!contents) return false;
+
+    let size = 0;
+    if (typeof contents.getContentsSize === 'function') {
+      size = contents.getContentsSize();
+    } else if (typeof contents.contents?.length === 'number') {
+      size = contents.contents.length;
+    } else if (Array.isArray(contents)) {
+      size = contents.length * 200;
+    }
+
+    // A truly blank page is usually a handful of bytes of setup operators.
+    if (size > 250) return true;
+    return hasFonts && size > 60;
+  } catch {
+    return true;
+  }
+}
+
 export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
   if (!docBuffers || !Object.keys(docBuffers).length) return baseBuffer;
 
@@ -53,7 +81,6 @@ export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
           ? await out.embedPng(doc.buffer)
           : await out.embedJpg(doc.buffer);
 
-        // Fit to the page width first, then clamp if that makes it too tall.
         const availW = PAGE_W - MARGIN * 2;
         let scale = availW / img.width;
         let w = img.width * scale;
@@ -66,7 +93,7 @@ export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
           h = img.height * scale;
         }
 
-        // Page is exactly as tall as it needs to be — no empty space.
+        // Page is exactly as tall as the image needs — no dead space.
         const pageH = HEADER_H + h + MARGIN * 2;
         const page = out.addPage([PAGE_W, pageH]);
 
@@ -79,17 +106,28 @@ export async function appendDocumentsToPdf(baseBuffer, docBuffers = {}) {
         page.drawImage(img, { x: (PAGE_W - w) / 2, y: MARGIN, width: w, height: h });
       } else if (/pdf$/i.test(doc.mimeType)) {
         const src = await PDFDocument.load(doc.buffer, { ignoreEncryption: true });
-        const pages = await out.copyPages(src, src.getPageIndices());
+
+        // Keep only pages that actually carry something.
+        const keep = [];
+        const srcPages = src.getPages();
+        srcPages.forEach((p, i) => { if (pageHasContent(p)) keep.push(i); });
+
+        const skipped = srcPages.length - keep.length;
+        if (skipped > 0) {
+          logger.info(`PDF merge: skipped ${skipped} blank page(s) in ${key}`);
+        }
+        if (!keep.length) {
+          logger.warn(`PDF merge: ${key} had no non-blank pages, keeping all`);
+          keep.push(...srcPages.map((_, i) => i));
+        }
+
+        const pages = await out.copyPages(src, keep);
         pages.forEach((p, i) => {
           out.addPage(p);
           if (i === 0) {
             const { width, height } = p.getSize();
-            p.drawRectangle({
-              x: 0, y: height - 26, width, height: 26, color: BLUE, opacity: 0.95,
-            });
-            p.drawText(label, {
-              x: MARGIN, y: height - 18, size: 11, font, color: rgb(1, 1, 1),
-            });
+            p.drawRectangle({ x: 0, y: height - 26, width, height: 26, color: BLUE, opacity: 0.95 });
+            p.drawText(label, { x: MARGIN, y: height - 18, size: 11, font, color: rgb(1, 1, 1) });
           }
         });
       } else {
