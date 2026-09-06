@@ -41,19 +41,19 @@ app.use(
   })
 );
 
-app.use(cors({
+app.use(cookieParser());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(mongoSanitize());
+
+const corsOptions = {
   origin: (origin, cb) => {
     if (!origin || corsOrigins.includes(origin) || origin.startsWith('http://localhost')) return cb(null, true);
     return cb(new Error(`CORS blocked ${origin}`));
   },
   credentials: true,
   maxAge: 86400,
-}));
-
-app.use(cookieParser());
-app.use(express.json({ limit: '2mb' }));
-app.use(express.urlencoded({ extended: true, limit: '2mb' }));
-app.use(mongoSanitize());
+};
 
 app.use('/uploads', express.static(path.resolve(__dirname, '../public/uploads'), {
   maxAge: '1h',
@@ -66,8 +66,8 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV, uptime: process.uptime() | 0 });
 });
 
-app.use('/api/gst', gstRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/gst', cors(corsOptions), gstRoutes);
+app.use('/api/admin', cors(corsOptions), adminRoutes);
 
 // serve the built client
 const CLIENT_DIST = path.resolve(__dirname, '../../client/dist');
