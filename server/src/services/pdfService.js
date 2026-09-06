@@ -4,12 +4,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import { uploadFile } from './storageService.js';
+import { appendDocumentsToPdf } from './pdfMerge.js';
 import { maskAadhaar } from '../utils/encryption.js';
 import { formatMobileDisplay } from '../utils/validators.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const TMP_DIR = process.env.NODE_ENV === 'production' ? '/tmp/sstax-pdfs' : path.resolve(__dirname, '../../tmp');
+const TMP_DIR = path.resolve(__dirname, '../../tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 const BRAND = {
@@ -20,11 +21,16 @@ const BRAND = {
   ok: '#16A34A',
 };
 
+function istNow(date = new Date()) {
+  return new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+}
 function fmtIst(date) {
-  return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  const d = istNow(date);
+  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 function fmtIstDate(date) {
-  return new Date(date).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' });
+  const d = istNow(date);
+  return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function addHeader(doc, reg) {
@@ -77,14 +83,22 @@ function fieldRow(doc, y, label, value) {
   return y + Math.max(18, Math.max(labelH, valueH) + 6);
 }
 
-function _buildPdf(doc, reg, photoBuffer) {
+export async function generateAcknowledgementPdf(reg, photoBuffer = null, docBuffers = null) {
+  const tmpFile = path.join(TMP_DIR, `${reg.applicationId}-${uuidv4()}.pdf`);
+  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
+  const stream = fs.createWriteStream(tmpFile);
+  doc.pipe(stream);
+
   let y = addHeader(doc, reg);
   doc.font('Helvetica-Bold').fontSize(18).fillColor(BRAND.navy).text('GST Registration — Application Acknowledgement', 40, y, { width: doc.page.width - 80, align: 'center' });
   y += 36;
 
   y = sectionTitle(doc, y, '1. Applicant Details', photoBuffer ? 430 : null);
+
   if (photoBuffer) {
-    try { doc.image(photoBuffer, doc.page.width - 150, y, { width: 80, height: 96, fit: [80, 96] }); } catch {}
+    try {
+      doc.image(photoBuffer, doc.page.width - 150, y, { width: 80, height: 96, fit: [80, 96] });
+    } catch {}
   }
   y = fieldRow(doc, y, 'Applicant Name', reg.applicantName);
   y = fieldRow(doc, y, 'Mobile Number', formatMobileDisplay(reg.mobile));
@@ -160,7 +174,7 @@ function _buildPdf(doc, reg, photoBuffer) {
     '4. GSTIN is delivered on approval from GSTN.',
   ];
   let sy = nextY + 36;
-  for (const s of steps) { doc.fillColor(BRAND.navy).text(s, 72, sy); sy += 18; }
+  for (const s of steps) { doc.fillColor(BRAND.text).text(s, 72, sy); sy += 18; }
 
   doc.addPage();
   doc.font('Helvetica-Oblique').fontSize(10).fillColor(BRAND.muted).text(
@@ -168,34 +182,28 @@ function _buildPdf(doc, reg, photoBuffer) {
     40, 120, { width: doc.page.width - 80, align: 'center' }
   );
 
-  addFooter(doc);
-}
+  addFooter(doc); // must be called after all pages are added, before doc.end()
 
-export async function generateAcknowledgementPdf(reg, photoBuffer = null) {
-  const tmpFile = path.join(TMP_DIR, `${reg.applicationId}-${uuidv4()}.pdf`);
-  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
-  const stream = fs.createWriteStream(tmpFile);
-  doc.pipe(stream);
-  _buildPdf(doc, reg, photoBuffer);
   doc.end();
   await new Promise((resolve, reject) => {
     stream.on('finish', resolve);
     stream.on('error', reject);
   });
+
+  // Append Aadhaar / PAN / Electricity Bill as extra pages for the client copy.
+  let buffer = fs.readFileSync(tmpFile);
+  if (docBuffers) {
+    buffer = await appendDocumentsToPdf(buffer, docBuffers);
+    fs.writeFileSync(tmpFile, buffer);
+  }
+
   const uploaded = await uploadFile(tmpFile, `${reg.applicationId}-acknowledgement.pdf`, 'application/pdf', 'gst-pdfs');
   try { fs.unlinkSync(tmpFile); } catch {}
-  return uploaded;
-}
-
-export function streamPdfToResponse(reg, photoBuffer = null, res) {
-  const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `GST Acknowledgement ${reg.applicationId}`, Author: 'SS Tax Mentors' } });
-  doc.pipe(res);
-  _buildPdf(doc, reg, photoBuffer);
-  doc.end();
+  return { fileRef: uploaded, buffer };
 }
 
 export function streamPdfFromDisk(localPath) {
   return fs.createReadStream(localPath);
 }
 
-export default { generateAcknowledgementPdf, streamPdfToResponse };
+export default { generateAcknowledgementPdf };

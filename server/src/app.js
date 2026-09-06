@@ -7,15 +7,12 @@ import mongoSanitize from 'express-mongo-sanitize';
 import cron from 'node-cron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 import connectDB from './config/db.js';
 import { configureCloudinary } from './config/cloudinary.js';
 import { configureSheets } from './config/sheets.js';
-import { configureMailer } from './config/mailer.js';
-
+import { verifyMailer } from './services/mailService.js';
 import gstRoutes from './routes/gstRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { retryFailedDeliveries } from './controllers/registrationController.js';
 import logger from './utils/logger.js';
@@ -48,19 +45,16 @@ app.use(mongoSanitize());
 
 const corsOptions = {
   origin: (origin, cb) => {
-    if (!origin || corsOrigins.includes(origin) || origin.startsWith('http://localhost')) return cb(null, true);
+    if (!origin || corsOrigins.includes(origin)) return cb(null, true);
+    // allow localhost only outside production, so dev tooling keeps working
+    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost')) {
+      return cb(null, true);
+    }
     return cb(new Error(`CORS blocked ${origin}`));
   },
   credentials: true,
   maxAge: 86400,
 };
-
-app.use('/uploads', express.static(path.resolve(__dirname, '../public/uploads'), {
-  maxAge: '1h',
-  setHeaders(res) {
-    res.setHeader('Content-Security-Policy', 'default-src \'none\'');
-  },
-}));
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, env: process.env.NODE_ENV, uptime: process.uptime() | 0 });
@@ -84,7 +78,7 @@ async function start() {
   await connectDB();
   configureCloudinary();
   configureSheets();
-  configureMailer();
+  verifyMailer();
 
   app.listen(PORT, () => {
     logger.info(`API listening on http://localhost:${PORT}`);

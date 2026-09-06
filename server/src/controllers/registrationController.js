@@ -1,8 +1,9 @@
+import fs from 'fs';
 import { body, validationResult } from 'express-validator';
 import GstRegistration from '../models/GstRegistration.js';
 import { getNextGstApplicationId } from '../models/Counter.js';
 import { uploadFile, getReadableUrl } from '../services/storageService.js';
-import { generateAcknowledgementPdf, streamPdfToResponse } from '../services/pdfService.js';
+import { generateAcknowledgementPdf } from '../services/pdfService.js';
 import { appendRegistration, updateStatus } from '../services/sheetsService.js';
 import { sendApplicantAcknowledgement, sendAdminNotification, sendStatusUpdate } from '../services/mailService.js';
 import { sendRegistrationReceived, sendStatusUpdate as sendWaStatus, sendArnGenerated, sendAdminNotification as sendWaAdmin } from '../services/whatsappService.js';
@@ -53,16 +54,26 @@ export async function registerSubmission(req, res, next) {
     }
     const applicationId = await getNextGstApplicationId();
     const uploaded = {};
-    for (const k of DOC_KEYS) {
-      if (files[k] && files[k].length) {
-        const f = files[k][0];
-        try {
-          uploaded[k] = await uploadFile(f.path, f.originalname, f.detectedMime || f.mimetype, `gst/${applicationId}`);
-        } catch (e) {
-          logger.warn(`Upload failed for ${k}: ${e.message} — storing filename only`);
-          uploaded[k] = { url: null, publicId: null, originalName: f.originalname, mimeType: f.detectedMime || f.mimetype, sizeBytes: 0, uploadedAt: new Date() };
+    const docBuffers = {};
+    try {
+      for (const k of DOC_KEYS) {
+        if (files[k] && files[k].length) {
+          const f = files[k][0];
+          const mime = f.detectedMime || f.mimetype;
+          // Read the bytes BEFORE uploadFile removes the temp file. These are
+          // reused for the merged client PDF and the admin attachments, which
+          // avoids re-downloading everything from Cloudinary.
+          try {
+            docBuffers[k] = { buffer: fs.readFileSync(f.path), mimeType: mime, originalName: f.originalname };
+          } catch (e) {
+            logger.warn(`Could not buffer ${k}: ${e.message}`);
+          }
+          uploaded[k] = await uploadFile(f.path, f.originalname, mime, `gst/${applicationId}`);
         }
       }
+    } catch (e) {
+      cleanupUploaded(req);
+      return res.status(500).json({ error: 'Document upload failed', detail: e.message });
     }
 
     const reg = new GstRegistration({
@@ -98,20 +109,14 @@ export async function registerSubmission(req, res, next) {
     await reg.save();
     logger.info(`Saved ${applicationId}`);
 
-    let photoBuffer = null;
-    try {
-      if (uploaded.photo?.url) {
-        const url = await getReadableUrl(uploaded.photo);
-        if (url) {
-          const r = await axios.get(url, { responseType: 'arraybuffer', timeout: 15000 });
-          photoBuffer = Buffer.from(r.data, 'binary');
-        }
-      }
-    } catch (e) { logger.warn('Photo fetch for PDF failed', e.message); }
+    const photoBuffer = docBuffers.photo?.buffer || null;
 
     let pdfFileRef = null;
+    let pdfBuffer = null;
     try {
-      pdfFileRef = await generateAcknowledgementPdf(reg, photoBuffer);
+      const pdf = await generateAcknowledgementPdf(reg, photoBuffer, docBuffers);
+      pdfFileRef = pdf.fileRef;
+      pdfBuffer = pdf.buffer;
       reg.delivery.pdfUrl = pdfFileRef.url;
       await reg.save();
     } catch (e) {
@@ -122,8 +127,8 @@ export async function registerSubmission(req, res, next) {
 
     const [sheetRes, emailRes, adminEmailRes, waRes, waAdminRes] = await Promise.allSettled([
       appendRegistration(reg),
-      sendApplicantAcknowledgement(reg, pdfFileRef),
-      sendAdminNotification(reg, pdfFileRef),
+      sendApplicantAcknowledgement(reg, pdfFileRef, pdfBuffer),
+      sendAdminNotification(reg, pdfFileRef, pdfBuffer, docBuffers),
       sendRegistrationReceived(reg, pdfFileRef, baseUrl),
       sendWaAdmin(reg),
     ]);
@@ -161,38 +166,18 @@ export async function downloadPdf(req, res, next) {
   try {
     const { applicationId } = req.params;
     const reg = await GstRegistration.findOne({ applicationId });
-    if (!reg) return res.status(404).json({ error: 'Application not found' });
-
-    // stream from Cloudinary if available
-    if (reg.delivery?.pdfUrl) {
-      try {
-        const fetchUrl = reg.delivery.pdfUrl.startsWith('http')
-          ? reg.delivery.pdfUrl
-          : `${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`;
-        const remote = await axios.get(fetchUrl, { responseType: 'stream', timeout: 20000 });
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-        return remote.data.pipe(res);
-      } catch (e) {
-        logger.warn(`PDF stream from storage failed, regenerating: ${e.message}`);
-      }
+    if (!reg || !reg.delivery?.pdfUrl) return res.status(404).json({ error: 'PDF not found' });
+    const url = await getReadableUrl({ ...reg.documents?.aadhaarCard, url: reg.delivery.pdfUrl, publicId: undefined });
+    if (reg.delivery.pdfUrl.startsWith('http')) {
+      const remote = await axios.get(reg.delivery.pdfUrl, { responseType: 'stream', timeout: 20000 });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
+      return remote.data.pipe(res);
     }
-
-    // regenerate and stream directly to browser without storing
-    let photoBuffer = null;
-    try {
-      if (reg.documents?.photo?.url) {
-        const url = await getReadableUrl(reg.documents.photo);
-        if (url) {
-          const r = await axios.get(url, { responseType: 'arraybuffer', timeout: 15000 });
-          photoBuffer = Buffer.from(r.data);
-        }
-      }
-    } catch (e) { logger.warn('Photo fetch for PDF regen failed', e.message); }
-
+    const remote = await axios.get(`${process.env.API_BASE_URL || ''}${reg.delivery.pdfUrl}`, { responseType: 'stream', timeout: 20000 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${applicationId}-acknowledgement.pdf"`);
-    await streamPdfToResponse(reg, photoBuffer, res);
+    remote.data.pipe(res);
   } catch (e) {
     next(e);
   }
