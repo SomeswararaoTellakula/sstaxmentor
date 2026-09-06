@@ -7,7 +7,7 @@ import { fileTypeFromBuffer } from 'file-type';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TMP_DIR = path.resolve(__dirname, '../../tmp/uploads');
+const TMP_DIR = process.env.NODE_ENV === 'production' ? '/tmp/sstax-uploads' : path.resolve(__dirname, '../../tmp/uploads');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 const MAX_SIZE_MB = Number(process.env.MAX_FILE_SIZE_MB || 5);

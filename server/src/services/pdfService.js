@@ -9,7 +9,7 @@ import { formatMobileDisplay } from '../utils/validators.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const TMP_DIR = path.resolve(__dirname, '../../tmp');
+const TMP_DIR = process.env.NODE_ENV === 'production' ? '/tmp/sstax-pdfs' : path.resolve(__dirname, '../../tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 const BRAND = {
