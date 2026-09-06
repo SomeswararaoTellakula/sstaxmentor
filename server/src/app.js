@@ -80,6 +80,14 @@ app.get('/api/health', (req, res) => {
 app.use('/api/gst', gstRoutes);
 app.use('/api/admin', adminRoutes);
 
+// serve the built client
+const CLIENT_DIST = path.resolve(__dirname, '../../client/dist');
+app.use(express.static(CLIENT_DIST));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(CLIENT_DIST, 'index.html'));
+});
+
 app.use(notFound);
 app.use(errorHandler);
 
