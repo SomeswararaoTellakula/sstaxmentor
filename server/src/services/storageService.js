@@ -47,10 +47,10 @@ export async function uploadFile(localPath, originalName, mimeType, folder = 'gs
     let uploaded;
     try {
       uploaded = await cloudinary.uploader.upload(localPath, {
-        upload_preset: 'sstaxmentor',
         public_id: publicId,
         resource_type: resourceType,
         folder,
+        timeout: 10000,
       });
     } catch (e) {
       logger.error(`Cloudinary upload failed: ${e.message} | http_code=${e.http_code} | cloud=${process.env.CLOUDINARY_CLOUD_NAME}`);

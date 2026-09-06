@@ -53,16 +53,16 @@ export async function registerSubmission(req, res, next) {
     }
     const applicationId = await getNextGstApplicationId();
     const uploaded = {};
-    try {
-      for (const k of DOC_KEYS) {
-        if (files[k] && files[k].length) {
-          const f = files[k][0];
+    for (const k of DOC_KEYS) {
+      if (files[k] && files[k].length) {
+        const f = files[k][0];
+        try {
           uploaded[k] = await uploadFile(f.path, f.originalname, f.detectedMime || f.mimetype, `gst/${applicationId}`);
+        } catch (e) {
+          logger.warn(`Upload failed for ${k}: ${e.message} — storing filename only`);
+          uploaded[k] = { url: null, publicId: null, originalName: f.originalname, mimeType: f.detectedMime || f.mimetype, sizeBytes: 0, uploadedAt: new Date() };
         }
       }
-    } catch (e) {
-      cleanupUploaded(req);
-      return res.status(500).json({ error: 'Document upload failed', detail: e.message });
     }
 
     const reg = new GstRegistration({
