@@ -50,7 +50,6 @@ export async function uploadFile(localPath, originalName, mimeType, folder = 'gs
         public_id: publicId,
         resource_type: resourceType,
         folder,
-        timeout: 10000,
       });
     } catch (e) {
       logger.error(`Cloudinary upload failed: ${e.message} | http_code=${e.http_code} | cloud=${process.env.CLOUDINARY_CLOUD_NAME}`);
@@ -87,6 +86,9 @@ export async function getReadableUrl(fileRef) {
       resource_type: fileRef.mimeType === 'application/pdf' ? 'raw' : 'image',
     });
   }
+  // Already absolute (e.g. a stored Cloudinary secure_url) — return as-is,
+  // otherwise the API base would be prepended to a full https:// URL.
+  if (fileRef.url && /^https?:\/\//i.test(fileRef.url)) return fileRef.url;
   return `${process.env.API_BASE_URL || ''}${fileRef.url}`;
 }
 
