@@ -44,7 +44,7 @@ export default function Footer() {
           </p>
           <div className="flex flex-wrap gap-2">
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">2000+ Clients</span>
-            <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">500+ GSTs</span>
+            <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">100+ GSTs</span>
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">Est. 2016</span>
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">99% Accurate</span>
           </div>
