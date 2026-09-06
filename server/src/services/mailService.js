@@ -110,8 +110,18 @@ export function verifyMailer() {
   return true;
 }
 
-/** Fetch the PDF and base64-encode it, which is what Brevo expects. */
-async function buildAttachment(pdfFileRef) {
+/**
+ * Build the Brevo attachment.
+ * Prefers the in-memory buffer (fresh sends); falls back to fetching the
+ * stored URL, which is what the 15-minute retry cron has to use.
+ */
+async function buildAttachment(pdfFileRef, pdfBuffer) {
+  if (pdfBuffer) {
+    return {
+      name: pdfFileRef?.originalName || 'acknowledgement.pdf',
+      content: Buffer.from(pdfBuffer).toString('base64'),
+    };
+  }
   try {
     const url = await getReadableUrl(pdfFileRef);
     if (!url || (url.startsWith('/') && !process.env.API_BASE_URL)) return null;
@@ -127,7 +137,7 @@ async function buildAttachment(pdfFileRef) {
 }
 
 /** Single transport for every email. Returns Brevo's { messageId }. */
-async function sendViaBrevo({ to, subject, html, text, attachment, replyTo }) {
+async function sendViaBrevo({ to, subject, html, text, attachment, attachments, replyTo }) {
   const recipients = String(to || '')
     .split(',')
     .map((e) => ({ email: e.trim() }))
@@ -145,7 +155,8 @@ async function sendViaBrevo({ to, subject, html, text, attachment, replyTo }) {
   };
   if (text) payload.textContent = text;
   if (replyTo) payload.replyTo = { email: replyTo };
-  if (attachment) payload.attachment = [attachment];
+  const attachList = attachments?.length ? attachments : (attachment ? [attachment] : []);
+  if (attachList.length) payload.attachment = attachList;
 
   try {
     const res = await axios.post(BREVO_URL, payload, {
@@ -163,10 +174,10 @@ async function sendViaBrevo({ to, subject, html, text, attachment, replyTo }) {
   }
 }
 
-export async function sendApplicantAcknowledgement(reg, pdfFileRef) {
+export async function sendApplicantAcknowledgement(reg, pdfFileRef, pdfBuffer = null) {
   if (!brevoConfigured()) return { ok: false, error: 'Brevo not configured' };
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
-  const attachment = pdfFileRef ? await buildAttachment(pdfFileRef) : null;
+  const attachment = (pdfFileRef || pdfBuffer) ? await buildAttachment(pdfFileRef, pdfBuffer) : null;
   try {
     const info = await sendViaBrevo({
       to: reg.email,
@@ -184,7 +195,42 @@ export async function sendApplicantAcknowledgement(reg, pdfFileRef) {
   }
 }
 
-export async function sendAdminNotification(reg, pdfFileRef) {
+/** Brevo caps total payload size; stay well under it. */
+const MAX_ATTACH_BYTES = 8 * 1024 * 1024;
+
+const ADMIN_DOC_ATTACHMENTS = [
+  { key: 'aadhaarCard', label: 'Aadhaar' },
+  { key: 'panCard', label: 'PAN' },
+  { key: 'photo', label: 'Photo' },
+  { key: 'electricityBill', label: 'ElectricityBill' },
+];
+
+/** Acknowledgement plus each document as a separate file, for the admin copy. */
+function buildAdminAttachments(reg, ackAttachment, docBuffers = {}) {
+  const list = [];
+  let total = 0;
+  if (ackAttachment) {
+    list.push(ackAttachment);
+    total += Buffer.byteLength(ackAttachment.content, 'base64');
+  }
+  for (const { key, label } of ADMIN_DOC_ATTACHMENTS) {
+    const d = docBuffers?.[key];
+    if (!d?.buffer) continue;
+    if (total + d.buffer.length > MAX_ATTACH_BYTES) {
+      logger.warn(`Admin attachment ${key} skipped — size cap reached`);
+      continue;
+    }
+    const ext = (d.originalName || '').split('.').pop() || 'bin';
+    list.push({
+      name: `${reg.applicationId}-${label}.${ext}`,
+      content: Buffer.from(d.buffer).toString('base64'),
+    });
+    total += d.buffer.length;
+  }
+  return list;
+}
+
+export async function sendAdminNotification(reg, pdfFileRef, pdfBuffer = null, docBuffers = null) {
   if (!brevoConfigured()) return { ok: false, error: 'Brevo not configured' };
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) return { ok: false, error: 'ADMIN_EMAIL not set' };
@@ -198,14 +244,15 @@ export async function sendAdminNotification(reg, pdfFileRef) {
     if (!ref) { docLinks[labels[i]] = null; continue; }
     docLinks[labels[i]] = { url: await getReadableUrl(ref), name: ref.originalName };
   }
-  const attachment = pdfFileRef ? await buildAttachment(pdfFileRef) : null;
+  const ack = (pdfFileRef || pdfBuffer) ? await buildAttachment(pdfFileRef, pdfBuffer) : null;
+  const attachments = buildAdminAttachments(reg, ack, docBuffers);
   try {
     const info = await sendViaBrevo({
       to: adminEmail,
       replyTo: reg.email,
       subject: `New GST Registration — ${reg.firmName} (${reg.applicationId})`,
       html: adminHtml({ reg, docLinks, adminUrl }),
-      attachment,
+      attachments,
     });
     logger.info(`Admin email sent ${reg.applicationId}: ${info.messageId}`);
     return { ok: true, at: new Date(), messageId: info.messageId };
