@@ -63,7 +63,7 @@ const differentiators = [
 const stats = [
   { num: '9 yrs', label: 'Est. 2016 · Tax Practitioners' },
   { num: '2000+', label: 'Active Business Clients' },
-  { num: '4500+', label: 'GST Registrations Filed' },
+  { num: '500+', label: 'GST Registrations Filed' },
   { num: '99.2%', label: 'First‑Pass Filing Success' },
   { num: '92%', label: 'Completed within 7 days' },
   { num: '36/36', label: 'Indian States & UTs Served' },

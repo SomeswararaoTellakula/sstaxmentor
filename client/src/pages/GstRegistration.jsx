@@ -85,12 +85,12 @@ export default function GstRegistration() {
                     <span className="text-lg">★</span><span className="text-lg">★</span><span className="text-lg">★</span>
                   </div>
                   <div className="mt-3 text-center">
-                    <div className="font-heading font-black text-brand-navy text-2xl leading-none">100+</div>
+                    <div className="font-heading font-black text-brand-navy text-2xl leading-none">500+</div>
                     <div className="text-xs font-bold uppercase tracking-[0.2em] text-brand-muted mt-1">GSTs Filed</div>
                   </div>
                   <div className="mt-8 space-y-3 w-full">
                     <StatChip><Award className="w-3.5 h-3.5" /> 2000+ Clients</StatChip>
-                    <StatChip>100+ GST Registrations</StatChip>
+                    <StatChip>500+ GST Registrations</StatChip>
                     <StatChip>Pan-India Service</StatChip>
                     <StatChip>99% Accuracy</StatChip>
                   </div>
