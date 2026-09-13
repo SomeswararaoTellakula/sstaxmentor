@@ -318,7 +318,7 @@ export default function AdminDashboard() {
                     })}
                   </div>
                   {detail.delivery?.pdfUrl && (
-                    <a href={detail.delivery.pdfSignedUrl || detail.delivery.pdfUrl} target="_blank" rel="noreferrer" className="mt-5 btn-primary w-full justify-center">
+                    <a href={`/api/gst/${detail.applicationId}/pdf`} target="_blank" rel="noreferrer" className="mt-5 btn-primary w-full justify-center">
                       <FileText className="w-4 h-4" /> Download Acknowledgement PDF
                     </a>
                   )}
