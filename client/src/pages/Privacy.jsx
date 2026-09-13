@@ -18,11 +18,11 @@ export default function Privacy() {
       <h3>3. Sharing</h3>
       <p>We share documents only with authorised staff handling your filing, and with the GST portal as required by law. We never sell or rent your personal data.</p>
       <h3>4. Your rights (DPDPA 2023)</h3>
-      <p>You have the right to access, correct, and request deletion of your personal data. To exercise these rights email someshtellakula@gmail.com from your registered email address quoting your Application ID. We will respond within 7 days and, upon verification, delete or anonymise all records and purge file uploads unless retention is required by law (e.g. ITR/GST records).</p>
+      <p>You have the right to access, correct, and request deletion of your personal data. To exercise these rights email sstaxmentor@gmail.com from your registered email address quoting your Application ID. We will respond within 7 days and, upon verification, delete or anonymise all records and purge file uploads unless retention is required by law (e.g. ITR/GST records).</p>
       <h3>5. Consent</h3>
       <p>By ticking the consent checkbox on the GST form you authorise SS Tax Mentors to use submitted documents and data for the purpose of your GST registration and related communications (email, WhatsApp, SMS).</p>
       <h3>6. Grievance</h3>
-      <p>For any privacy grievance, contact the Data Grievance Officer at someshtellakula@gmail.com with subject “Privacy Grievance”.</p>
+      <p>For any privacy grievance, contact the Data Grievance Officer at sstaxmentor@gmail.com with subject “Privacy Grievance”.</p>
     </div>
   );
 }

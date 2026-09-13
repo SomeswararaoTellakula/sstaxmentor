@@ -25,14 +25,14 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur border-b border-brand-line">
       <div className="section-wrap flex items-center justify-between h-16 md:h-20">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-brand-blueLt flex items-center justify-center text-white font-heading font-black text-xl shadow-sm">
-            S<span className="text-brand-sky">T</span>M
-          </div>
-          <div className="leading-tight">
-            <div className="font-heading font-black text-brand-navy text-xl tracking-tight">SS TAX <span className="text-brand-blue">MENTORS</span></div>
-            <div className="text-[10px] font-semibold text-brand-muted tracking-wider uppercase">Reach Us & Relax</div>
-          </div>
+        <Link to="/" className="flex items-center shrink-0">
+          <img
+            src="/logo.png"
+            alt="SS Tax Mentors — Reach Us &amp; Relax"
+            className="h-10 md:h-12 w-auto"
+            width="365"
+            height="160"
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
@@ -54,8 +54,8 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="tel:+918179726723" className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
-            <Phone className="w-4 h-4 text-brand-blue" /> +91 8179726723
+          <a href="tel:+917671013053" className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+            <Phone className="w-4 h-4 text-brand-blue" /> +91 7671013053
           </a>
           <NavLink to="/track" className="btn-secondary">Track</NavLink>
           <NavLink to="/admin/login" className="btn-primary">Admin</NavLink>
@@ -80,7 +80,7 @@ export default function Header() {
                 <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-semibold py-2">{l.label}</Link>
               );
             })}
-            <a href="tel:+918179726723" className="text-sm font-semibold py-2 text-brand-blue">📞 +91 8179726723</a>
+            <a href="tel:+917671013053" className="text-sm font-semibold py-2 text-brand-blue">📞 +91 7671013053</a>
             <NavLink to="/track" onClick={() => setOpen(false)} className="btn-secondary justify-center">Track Application</NavLink>
             <NavLink to="/admin/login" onClick={() => setOpen(false)} className="btn-primary justify-center">Admin Login</NavLink>
           </div>

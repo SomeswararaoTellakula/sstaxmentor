@@ -79,6 +79,9 @@ const gstRegistrationSchema = new mongoose.Schema(
       emailSent:     { type: DeliveryStatusSchema, default: () => ({}) },
       whatsappSent:  { type: DeliveryStatusSchema, default: () => ({}) },
       pdfUrl: String,
+      // Cloudinary publicId of the acknowledgement PDF. Required to build a
+      // signed delivery URL — raw assets cannot be fetched unsigned.
+      pdfPublicId: String,
     },
 
     meta: {

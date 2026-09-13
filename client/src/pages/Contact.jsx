@@ -6,8 +6,8 @@ export default function Contact() {
       <p className="kicker mb-4">Contact Us</p>
       <h1 className="font-heading font-black text-4xl mb-6">Get in touch</h1>
       <div className="card p-8 space-y-4 text-sm">
-        <div><b className="text-brand-navy">Phone:</b> +91 8179726723</div>
-        <div><b className="text-brand-navy">Email:</b> someshtellakula@gmail.com</div>
+        <div><b className="text-brand-navy">Phone:</b> +91 7671013053 / +91 8801103053</div>
+        <div><b className="text-brand-navy">Email:</b> sstaxmentor@gmail.com</div>
         <div><b className="text-brand-navy">Website:</b> www.sstaxmentors.com</div>
       </div>
       <div className="flex flex-wrap gap-3 mt-8">

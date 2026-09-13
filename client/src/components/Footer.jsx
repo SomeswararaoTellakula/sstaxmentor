@@ -32,19 +32,19 @@ export default function Footer() {
         <div>
           <h4 className="font-heading font-bold text-white mb-4">Contact</h4>
           <ul className="space-y-3 text-sm text-white/80">
-            <li className="flex items-start gap-2"><Phone className="w-4 h-4 text-brand-blueLt mt-0.5" /> +91 8179726723</li>
-            <li className="flex items-start gap-2"><Mail className="w-4 h-4 text-brand-blueLt mt-0.5" /> someshtellakula@gmail.com</li>
+            <li className="flex items-start gap-2"><Phone className="w-4 h-4 text-brand-blueLt mt-0.5" /> +91 7671013053 / +91 8801103053</li>
+            <li className="flex items-start gap-2"><Mail className="w-4 h-4 text-brand-blueLt mt-0.5" /> sstaxmentor@gmail.com</li>
             <li className="flex items-start gap-2"><Globe className="w-4 h-4 text-brand-blueLt mt-0.5" /> www.sstaxmentors.com</li>
           </ul>
         </div>
         <div>
           <h4 className="font-heading font-bold text-white mb-4">Pan-India Service</h4>
           <p className="text-sm text-white/70 mb-4">
-            Established in 2016 · 2000+ clients · 100+ GST registrations filed · 99% compliance accuracy.
+            Established in 2016 · 2000+ clients · 500+ GST registrations filed · 99% compliance accuracy.
           </p>
           <div className="flex flex-wrap gap-2">
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">2000+ Clients</span>
-            <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">100+ GSTs</span>
+            <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">500+ GSTs</span>
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">Est. 2016</span>
             <span className="px-3 py-1.5 rounded-full bg-white/10 text-xs font-semibold">99% Accurate</span>
           </div>

@@ -64,7 +64,7 @@ export default function TrackApplication() {
             <FileX className="w-8 h-8" />
           </div>
           <h3 className="font-heading font-bold text-xl text-brand-navy mb-2">Application not found</h3>
-          <p className="text-brand-muted">Please check the Application ID and try again, or contact us at +91 8179726723.</p>
+          <p className="text-brand-muted">Please check the Application ID and try again, or contact us at +91 7671013053.</p>
         </div>
       )}
 
@@ -138,7 +138,7 @@ export default function TrackApplication() {
                     <XCircle className="w-3.5 h-3.5" />
                   </span>
                   <h4 className="font-heading font-bold text-red-700">Rejected</h4>
-                  <p className="text-xs text-brand-muted mt-1">If you have questions, please contact +91 8179726723.</p>
+                  <p className="text-xs text-brand-muted mt-1">If you have questions, please contact +91 7671013053.</p>
                 </li>
               )}
             </ol>
@@ -148,9 +148,9 @@ export default function TrackApplication() {
             <h3 className="font-heading font-bold text-lg text-brand-navy mb-4 flex items-center gap-2"><Mail className="w-5 h-5 text-brand-blue" /> Notifications</h3>
             <p className="text-sm text-brand-text mb-3">You will receive status updates on your registered email and mobile via WhatsApp.</p>
             <div className="flex flex-wrap gap-3">
-              <a href="mailto:someshtellakula@gmail.com" className="btn-secondary">Email Us</a>
-              <a href="tel:+918179726723" className="btn-secondary">Call +91 8179726723</a>
-              <a href={`https://wa.me/918179726723?text=${encodeURIComponent('Hi SS Tax Mentors! Following up on my GST application ' + record.applicationId)}`} target="_blank" rel="noreferrer" className="btn-primary">Chat on WhatsApp</a>
+              <a href="mailto:sstaxmentor@gmail.com" className="btn-secondary">Email Us</a>
+              <a href="tel:+917671013053" className="btn-secondary">Call +91 7671013053</a>
+              <a href={`https://wa.me/917671013053?text=${encodeURIComponent('Hi SS Tax Mentors! Following up on my GST application ' + record.applicationId)}`} target="_blank" rel="noreferrer" className="btn-primary">Chat on WhatsApp</a>
             </div>
           </div>
         </div>

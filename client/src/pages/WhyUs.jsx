@@ -63,7 +63,7 @@ const differentiators = [
 const stats = [
   { num: '9 yrs', label: 'Est. 2016 · Tax Practitioners' },
   { num: '2000+', label: 'Active Business Clients' },
-  { num: '100+', label: 'GST Registrations Filed' },
+  { num: '500+', label: 'GST Registrations Filed' },
   { num: '99.2%', label: 'First‑Pass Filing Success' },
   { num: '92%', label: 'Completed within 7 days' },
   { num: '36/36', label: 'Indian States & UTs Served' },
@@ -228,11 +228,11 @@ export default function WhyUs() {
               Start Registration <ArrowRight className="w-4 h-4" />
             </Link>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-              <a href="tel:+918179726723" className="inline-flex items-center gap-2 hover:text-brand-amber transition">
-                <Phone className="w-4 h-4" /> +91 8179726723
+              <a href="tel:+917671013053" className="inline-flex items-center gap-2 hover:text-brand-amber transition">
+                <Phone className="w-4 h-4" /> +91 7671013053
               </a>
-              <a href="mailto:someshtellakula@gmail.com" className="inline-flex items-center gap-2 hover:text-brand-amber transition">
-                <Mail className="w-4 h-4" /> someshtellakula@gmail.com
+              <a href="mailto:sstaxmentor@gmail.com" className="inline-flex items-center gap-2 hover:text-brand-amber transition">
+                <Mail className="w-4 h-4" /> sstaxmentor@gmail.com
               </a>
               <Link to="/contact" className="inline-flex items-center gap-2 hover:text-brand-amber transition">
                 <Globe className="w-4 h-4" /> Contact Page

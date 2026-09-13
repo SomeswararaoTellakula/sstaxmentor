@@ -122,8 +122,8 @@ export default function Home() {
                       <div className="font-heading font-black text-lg mb-1">Last 12 months</div>
                       <div className="text-white/80">2000+ registrations filed · 92% issued within 7 days · 0 unresolved query cases</div>
                     </div>
-                    <a href="tel:+918179726723" className="inline-flex items-center gap-2 text-brand-amber hover:text-white transition font-semibold">
-                      <Phone className="w-4 h-4" /> +91 8179726723 — talk to a practitioner
+                    <a href="tel:+917671013053" className="inline-flex items-center gap-2 text-brand-amber hover:text-white transition font-semibold">
+                      <Phone className="w-4 h-4" /> +91 7671013053 — talk to a practitioner
                     </a>
                   </div>
                 </div>
