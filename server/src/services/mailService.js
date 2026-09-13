@@ -58,14 +58,14 @@ td:last-child{color:#0B1B3A;font-weight:600}
     </div>
   </div>
   <div class="footer">
-    www.sstaxmentors.com · +91 8179726723 · someshtellakula@gmail.com
+    www.sstaxmentors.com · +91 7671013053 / +91 8801103053 · sstaxmentor@gmail.com
   </div>
 </div>
 </body></html>`;
 }
 
 function applicantText({ reg, baseUrl }) {
-  return `SS Tax Mentors — GST Registration Received\n\nHi ${reg.applicantName},\nApplication ID: ${reg.applicationId}\nFirm: ${reg.firmName}\nStatus: ${reg.status}\nTrack: ${baseUrl}/track/${reg.applicationId}\n\nCall: +91 8179726723`;
+  return `SS Tax Mentors — GST Registration Received\n\nHi ${reg.applicantName},\nApplication ID: ${reg.applicationId}\nFirm: ${reg.firmName}\nStatus: ${reg.status}\nTrack: ${baseUrl}/track/${reg.applicationId}\n\nCall: +91 7671013053`;
 }
 
 function adminHtml({ reg, docLinks, adminUrl }) {
@@ -284,7 +284,7 @@ export async function sendStatusUpdate(reg, newStatus, extras = {}) {
           ${extras.arn ? `<p><b>ARN:</b> ${extras.arn}</p>` : ''}
           ${extras.gstin ? `<p><b>GSTIN:</b> ${extras.gstin}</p>` : ''}
           <p style="margin:22px 0"><a href="${baseUrl}/track/${reg.applicationId}" style="display:inline-block;background:#1A4FD6;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:600">Track status</a></p>
-          <p style="color:#6B7280;font-size:12px">Call +91 8179726723 for any queries.</p>
+          <p style="color:#6B7280;font-size:12px">Call +91 7671013053 for any queries.</p>
         </div>`,
     });
     return { ok: true, at: new Date() };

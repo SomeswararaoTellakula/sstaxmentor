@@ -54,8 +54,8 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <a href="tel:+918179726723" className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
-            <Phone className="w-4 h-4 text-brand-blue" /> +91 8179726723
+          <a href="tel:+917671013053" className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+            <Phone className="w-4 h-4 text-brand-blue" /> +91 7671013053
           </a>
           <NavLink to="/track" className="btn-secondary">Track</NavLink>
           <NavLink to="/admin/login" className="btn-primary">Admin</NavLink>
@@ -80,7 +80,7 @@ export default function Header() {
                 <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-semibold py-2">{l.label}</Link>
               );
             })}
-            <a href="tel:+918179726723" className="text-sm font-semibold py-2 text-brand-blue">📞 +91 8179726723</a>
+            <a href="tel:+917671013053" className="text-sm font-semibold py-2 text-brand-blue">📞 +91 7671013053</a>
             <NavLink to="/track" onClick={() => setOpen(false)} className="btn-secondary justify-center">Track Application</NavLink>
             <NavLink to="/admin/login" onClick={() => setOpen(false)} className="btn-primary justify-center">Admin Login</NavLink>
           </div>

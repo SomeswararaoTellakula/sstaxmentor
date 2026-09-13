@@ -53,8 +53,8 @@ function addFooter(doc) {
     const y = doc.page.height - 46;
     doc.fillColor(BRAND.muted).fontSize(8).font('Helvetica');
     doc.text('www.sstaxmentors.com', 40, y);
-    doc.text('Call: +91 8179726723', 220, y, { width: 200, align: 'center' });
-    doc.text('someshtellakula@gmail.com', 440, y);
+    doc.text('Call: +91 7671013053 / 8801103053', 220, y, { width: 200, align: 'center' });
+    doc.text('sstaxmentor@gmail.com', 440, y);
     doc.text(`Page ${i + 1} of ${range.count}`, doc.page.width - 100, y + 14, { width: 60, align: 'right' });
     doc.moveTo(40, doc.page.height - 54).lineTo(doc.page.width - 40, doc.page.height - 54).strokeColor(BRAND.line).stroke();
     doc.fontSize(7).fillColor(BRAND.muted).text(

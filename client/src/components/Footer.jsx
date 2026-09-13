@@ -32,8 +32,8 @@ export default function Footer() {
         <div>
           <h4 className="font-heading font-bold text-white mb-4">Contact</h4>
           <ul className="space-y-3 text-sm text-white/80">
-            <li className="flex items-start gap-2"><Phone className="w-4 h-4 text-brand-blueLt mt-0.5" /> +91 8179726723</li>
-            <li className="flex items-start gap-2"><Mail className="w-4 h-4 text-brand-blueLt mt-0.5" /> someshtellakula@gmail.com</li>
+            <li className="flex items-start gap-2"><Phone className="w-4 h-4 text-brand-blueLt mt-0.5" /> +91 7671013053 / +91 8801103053</li>
+            <li className="flex items-start gap-2"><Mail className="w-4 h-4 text-brand-blueLt mt-0.5" /> sstaxmentor@gmail.com</li>
             <li className="flex items-start gap-2"><Globe className="w-4 h-4 text-brand-blueLt mt-0.5" /> www.sstaxmentors.com</li>
           </ul>
         </div>
