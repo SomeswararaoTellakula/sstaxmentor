@@ -24,6 +24,42 @@ npm run dev                                # http://localhost:5173
 
 Open http://localhost:5173/gst-registration for the landing page.
 
+## Laravel backend
+
+The Laravel migration lives in `server-laravel/` and preserves the React API paths. It uses SQLite by default for local setup,
+stores uploaded files on Laravel's public disk, encrypts Aadhaar with Laravel's application key, and generates acknowledgement
+PDFs with Dompdf.
+
+```bash
+# Backend (Docker is enough; PHP/Composer are not required on the host)
+cd server-laravel
+docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" -w /app composer:2 php artisan migrate:fresh --seed --force
+docker run --rm -p 8000:8000 -v "$PWD:/app" -w /app composer:2 php artisan serve --host=0.0.0.0 --port=8000
+
+# Frontend, in another terminal
+cd ../client
+cp .env.example .env.local
+npm run dev
+```
+
+The Laravel backend currently covers registration, validation, local uploads, PDF download, tracking, admin login/cookie auth,
+dashboard queries, updates, CSV export, and deletion. Cloudinary, Google Sheets, email, and WhatsApp delivery adapters still need
+to be connected before replacing the existing production Node server.
+
+### Free deployment with Render
+
+`server-laravel/Dockerfile` and `server-laravel/render.yaml` are ready for a free Render web service. Use a free PostgreSQL
+database such as Supabase or Neon; do not use SQLite on Render because its filesystem is ephemeral.
+
+1. Create a free Postgres project and copy its host, database, user, password, and port.
+2. Push this repository to GitHub.
+3. In Render, choose **New → Blueprint**, select the repository, and point it at `server-laravel/render.yaml`.
+4. Set `APP_KEY` to a generated Laravel key, `APP_URL` to the Render URL, the Postgres variables, and admin credentials.
+5. After deployment, set `VITE_API_URL` in `client/.env.local` to the Render URL and run `npm run build`.
+
+The free Render filesystem resets on redeploy/restart. The Laravel migration currently stores uploads locally, so this deployment is
+only suitable for a demo until the Laravel storage service is connected to Cloudinary or another persistent object store.
+
 ---
 
 ## 2. Monorepo layout
